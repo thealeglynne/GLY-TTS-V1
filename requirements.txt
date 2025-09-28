@@ -1,0 +1,16 @@
+# Framework principal
+fastapi
+uvicorn[standard]
+
+# TTS con Microsoft Edge
+edge-tts
+
+# Variables de entorno
+python-dotenv
+
+# LangChain y conector Groq
+langchain
+langchain-groq
+
+# HTTP requests
+requests
