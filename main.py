@@ -9,6 +9,7 @@ import edge_tts
 import time
 
 # Importa la función 'responder_asistente' desde el módulo 'sst'
+# ✅ Puede devolver solo la respuesta o una tupla: (respuesta, tokens_info)
 from agent.chat import responder_asistente
 
 app = FastAPI()
@@ -37,7 +38,7 @@ async def get_root():
     """
     return {"status": "ok", "message": "Backend is live"}
 
-# === TU RUTA /conversar EXISTENTE ===
+# === FUNCIÓN PARA GUARDAR AUDIO TEMPORAL ===
 async def hablar_async_to_file(texto, filepath):
     communicate = edge_tts.Communicate(
         texto,
@@ -59,11 +60,19 @@ async def conversar(request: Request):
         if not texto_usuario or not isinstance(texto_usuario, str) or not texto_usuario.strip():
             return JSONResponse(content={"error": "No se recibió texto válido"}, status_code=400)
         
-        # Asumiendo que el frontend no envía un session_id,
-        # puedes usar un valor por defecto para evitar el error.
         session_id = "default_session"
-        
-        respuesta = await responder_asistente(texto_usuario.strip(), session_id)
+
+        # ✅ Manejar ambos casos: que responda con tupla o solo con respuesta
+        resultado = await responder_asistente(texto_usuario.strip(), session_id)
+        if isinstance(resultado, tuple):
+            respuesta, tokens_info = resultado
+        else:
+            respuesta = resultado
+            tokens_info = {
+                "usuario": len(texto_usuario.split()),
+                "llm": len(respuesta.split()),
+                "total": len(texto_usuario.split()) + len(respuesta.split())
+            }
         
         temp_path = os.path.join(tempfile.gettempdir(), f"respuesta_{int(time.time())}.mp3")
         await hablar_async_to_file(respuesta, temp_path)
@@ -73,10 +82,12 @@ async def conversar(request: Request):
             os.remove(temp_path)
         except Exception as e:
             print(f"Error al eliminar archivo temporal: {e}")
+        
         return {
             "transcripcion_usuario": texto_usuario,
             "respuesta_asistente": respuesta,
-            "audio_base64": audio_base64
+            "audio_base64": audio_base64,
+            "tokens": tokens_info  # 👈 siempre devolver tokens
         }
     except Exception as e:
         print(f"Error en /conversar: {str(e)}")
