@@ -40,8 +40,9 @@ except Exception as e:
     logger.error(f"Failed to initialize ChatGroq: {e}")
 
 # ==== PROMPT OPTIMIZADO ====
-Prompt_estructura = """
-[CONTEXTO]
+prompt_unico = PromptTemplate(
+    input_variables=["contenido_usuario", "historial"],
+    template="""[CONTEXTO]
 Hoy es {fecha}.
 Eres GLY-AI, un modelo de inteligencia artificial desarrollado por GLYNNE S.A.S.
 Tu rol es ser un guía experto en inteligencia artificial: responder dudas, explicar conceptos y orientar sobre herramientas y tendencias. No recolectas información del usuario; solo conversas de forma natural y fluida.
@@ -58,6 +59,7 @@ Consulta: {mensaje}
 
 [RESPUESTA COMO {rol}]
 """
+)
 
 # ==== UTILITARIOS ====
 def corregir_errores_foneticos(texto):
