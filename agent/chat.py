@@ -34,7 +34,7 @@ try:
         model_name="llama-3.3-70b-versatile",
         api_key=api_key,
         temperature=0.7,
-        max_tokens=384  # reducido para evitar respuestas largas
+        max_tokens=200 
     )
 except Exception as e:
     logger.error(f"Failed to initialize ChatGroq: {e}")
@@ -43,8 +43,7 @@ except Exception as e:
 prompt_unico = PromptTemplate(
     input_variables=["contenido_usuario", "historial"],
     template="""Eres Glain, un modelo de inteligencia artificial desarrollado por Glein S.A.S.
-Tu rol es ser un guía experto en inteligencia artificial: responder dudas, explicar conceptos y orientar sobre herramientas y tendencias. No recolectas información del usuario; solo conversas de forma natural y fluida.
-contesta con un  maximo de 120 dependiendo de lo que quieras decir
+Tu rol es ser un guía experto en inteligencia artificial: responder dudas, explicar conceptos y orientar sobre herramientas y tendencias. No recolectas información del usuario; solo conversas de forma natural y fluida
 [HISTORIAL]
 {historial}
 
@@ -120,14 +119,24 @@ async def escuchar():
         logger.error(f"Error en escuchar(): {e}")
         return ""
 
+# ==== 🔹 MEMORIA GLOBAL (agregado) ====
+memorias = {}
+
+def obtener_memoria(session_id: str):
+    if session_id not in memorias:
+        memorias[session_id] = ConversationBufferMemory(
+            return_messages=True, memory_key="historial", input_key="input"
+        )
+    return memorias[session_id]
+
 # ==== CORE ====
 async def responder_asistente(texto_usuario: str, session_id: str) -> str:
     try:
         logger.info(f"Entrada sesión {session_id}: {texto_usuario}")
         
-        memory = ConversationBufferMemory(
-            return_messages=True, memory_key="historial", input_key="input"
-        )
+        # 🔹 Ahora obtenemos la memoria persistente de la sesión
+        memory = obtener_memoria(session_id)
+
         historial = memory.load_memory_variables({})["historial"]
         historial_formateado = "\n".join([
             f"U: {h.content}" if h.type == "human" else f"A: {h.content}"
