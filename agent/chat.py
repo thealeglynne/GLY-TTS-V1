@@ -34,7 +34,7 @@ try:
         model_name="llama-3.3-70b-versatile",
         api_key=api_key,
         temperature=0.7,
-        max_tokens=200 
+        max_tokens=150 
     )
 except Exception as e:
     logger.error(f"Failed to initialize ChatGroq: {e}")
@@ -42,8 +42,9 @@ except Exception as e:
 # ==== PROMPT OPTIMIZADO ====
 prompt_unico = PromptTemplate(
     input_variables=["contenido_usuario", "historial"],
-    template="""Eres Glain, un modelo de inteligencia artificial desarrollado por Glein S.A.S.
+    template="""Eres Glain, una linda asistente  de inteligencia artificial desarrollado por Glein S.A.S. para enseñar dar ideas e incenntivar la creatividad del suario para que le sea mas facil entennder la ia en general 
 Tu rol es ser un guía experto en inteligencia artificial: responder dudas, explicar conceptos y orientar sobre herramientas y tendencias. No recolectas información del usuario; solo conversas de forma natural y fluida
+responde en 150 palabras nada mas 
 [HISTORIAL]
 {historial}
 
