@@ -120,7 +120,7 @@ async def escuchar():
         logger.error(f"Error en escuchar(): {e}")
         return ""
 
-# ==== 🔹 MEMORIA GLOBAL (agregado) ====
+# ==== 🔹 MEMORIA POR SESIÓN ====
 memorias = {}
 
 def obtener_memoria(session_id: str):
@@ -135,13 +135,18 @@ async def responder_asistente(texto_usuario: str, session_id: str) -> str:
     try:
         logger.info(f"Entrada sesión {session_id}: {texto_usuario}")
         
-        # 🔹 Ahora obtenemos la memoria persistente de la sesión
         memory = obtener_memoria(session_id)
-
         historial = memory.load_memory_variables({})["historial"]
+
+        # 🔹 Tomar solo los últimos 4 mensajes para contexto
+        if len(historial) > 8:  # 4 intercambios = 8 elementos (human + AI)
+            historial_contexto = historial[-8:]
+        else:
+            historial_contexto = historial
+
         historial_formateado = "\n".join([
             f"U: {h.content}" if h.type == "human" else f"A: {h.content}"
-            for h in historial
+            for h in historial_contexto
         ])
         
         prompt = prompt_unico.format(
